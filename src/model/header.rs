@@ -1,6 +1,8 @@
-use std::fmt::Display;
+use std::{fmt::Display, str::FromStr};
 
 use serde::{Deserialize, Serialize};
+
+use crate::decoding::header::HeaderDecodeError;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Header {
@@ -50,6 +52,17 @@ impl Display for Algorithm {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Algorithm::HS256 => write!(f, "HS256"),
+        }
+    }
+}
+
+impl FromStr for Algorithm {
+    type Err = HeaderDecodeError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "HS256" => Ok(Algorithm::HS256),
+            _ => Err(HeaderDecodeError::UnsupportedAlgorithm(s.to_string())),
         }
     }
 }
