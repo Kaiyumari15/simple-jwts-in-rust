@@ -1,6 +1,8 @@
 use base64::Engine;
 use serde::Serialize;
 
+use super::ENCODING_ENGINE;
+
 /// Encodes claims into a base64 string.
 /// 
 /// # Arguments
@@ -24,7 +26,7 @@ pub fn encode<T: Serialize>(claims: &T) -> Result<String, ClaimsEncodeError> {
     }
 
     // Encode the JSON string to base64
-    let claims_base64: String = base64::engine::general_purpose::STANDARD.encode(claims_json);
+    let claims_base64: String = ENCODING_ENGINE.encode(claims_json);
     Ok(claims_base64)
 }
 

@@ -3,6 +3,8 @@ use serde_json::json;
 
 use crate::model::header::Header;
 
+use super::ENCODING_ENGINE;
+
 /// Encodes a header into a base64 string
 /// 
 /// # Arguments
@@ -20,7 +22,7 @@ pub fn encode(header: &Header) -> Result<String, HeaderEncodeError> {
     let header_json = serde_json::to_string(&header).map_err(|e| HeaderEncodeError::JsonError(e))?;
 
     // Encode the JSON string to base64 
-    let header_base64: String = base64::engine::general_purpose::STANDARD.encode(header_json);
+    let header_base64: String = ENCODING_ENGINE.encode(header_json);
     Ok(header_base64)
 }
 
