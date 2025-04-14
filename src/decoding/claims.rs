@@ -1,4 +1,5 @@
-use serde::{Deserialize, Serialize};
+use base64::Engine;
+use serde::Deserialize;
 
 /// Decodes claims from a base64 string into the user defined type T
 /// 
@@ -10,20 +11,20 @@ use serde::{Deserialize, Serialize};
 /// 
 /// # Returns
 /// A `Result` containing either the decoded claims or an error
-pub fn decode<T: Deserialize<'static>>(claims: &str) -> Result<T, ClaimsDecodeError> {
+pub fn decode<T: for<'a> Deserialize<'a> + Clone + ToOwned>(claims: &str) -> Result<T, ClaimsDecodeError> {
     // Decode the base64 string
-    let claims_json = base64::engine::general_purpose::STANDARD.decode(claims).map_err(|e| ClaimsDecodeError::Base64Error(e))?;
-    
-    // Convert the decoded bytes to a JSON string
-    let claims_json_str = String::from_utf8(claims_json).map_err(|e| ClaimsDecodeError::Other(e.to_string()))?;
-    
-    // Deserialize the JSON string into the specified type
-    let claims: T = serde_json::from_str(&claims_json_str).map_err(|e| ClaimsDecodeError::JsonError(e))?;
-    
-    Ok(claims)
+    let claims_json: Vec<u8> = base64::engine::general_purpose::STANDARD.decode(claims).map_err(|e| ClaimsDecodeError::Base64Error(e))?;
+
+    // Deserialize the JSON bytes
+    let bytes: &[u8]= claims_json.as_slice();
+    let result: T = serde_json::from_slice(bytes).map_err(|e| ClaimsDecodeError::JsonError(e))?;
+
+    let result = result.clone();
+
+    Ok(result)
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 /// Type returned when decoding claims fails
 /// 
 /// # Variants
