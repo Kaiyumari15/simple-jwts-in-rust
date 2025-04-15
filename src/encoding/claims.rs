@@ -30,6 +30,7 @@ pub fn encode<T: Serialize>(claims: &T) -> Result<String, ClaimsEncodeError> {
     Ok(claims_base64)
 }
 
+#[derive(Debug)]
 /// Error type returned when encoding claims fails.
 /// 
 /// # Variants
