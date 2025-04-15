@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::decoding::header::HeaderDecodeError;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Header {
     pub alg: Algorithm,
 }
@@ -33,7 +33,7 @@ impl Header {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// The algorithm used to sign the JWT.
 /// Currently, only HS256 is supported.
 /// 
@@ -51,7 +51,7 @@ pub enum Algorithm {
 impl Display for Algorithm {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Algorithm::RS256 => write!(f, "HS256"),
+            Algorithm::RS256 => write!(f, "RS256"),
         }
     }
 }
@@ -61,7 +61,7 @@ impl FromStr for Algorithm {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "HS256" => Ok(Algorithm::RS256),
+            "RS256" => Ok(Algorithm::RS256),
             _ => Err(HeaderDecodeError::UnsupportedAlgorithm(s.to_string())),
         }
     }
