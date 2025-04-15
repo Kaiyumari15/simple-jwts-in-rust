@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::decoding::header::HeaderDecodeError;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Header {
     pub alg: Algorithm,
 }
@@ -33,7 +33,7 @@ impl Header {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 /// The algorithm used to sign the JWT.
 /// Currently, only HS256 is supported.
 /// 
