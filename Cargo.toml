@@ -1,6 +1,16 @@
 [package]
-name = "basicjwt"
-version = "0.1.0"
+name = "super_simple_jwt"
+version = "1.0.1"
 edition = "2024"
+description = "A super simple implementation of JWTs in rust!"
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/Kaiyumari15/simple-jwts-in-rust"
+keywords = ["JWT", "basic_JWT", "jsonwebtoken", "token", "json"]
+categories = ["authentication", "cryptography", "security", "web-programming", "web-programming::http-server"]
 
 [dependencies]
+base64 = "0.22.1"
+rsa = { version = "0.9.8", features = ["sha2"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"

@@ -1,14 +1,11 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+mod decoding;
+mod encoding;
+mod model;
+mod signing;
+mod tests;
+mod verifying;
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub use crate::signing::sign;
+pub use crate::verifying::verify;
+pub use crate::decoding::{ claims::decode as decode_claims, header::decode as decode_header };
+pub use crate::model::header::{ Algorithm, Header };
