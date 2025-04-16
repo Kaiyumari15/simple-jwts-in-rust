@@ -6,6 +6,8 @@ use rsa::sha2::Sha256;
 use rsa::RsaPrivateKey;
 use rsa::rand_core::OsRng;
 
+use crate::encoding::ENCODING_ENGINE;
+
 /// This function signs a JWT using RSA256 with a private key in PEM format.
 /// 
 /// # Arguments
@@ -23,7 +25,7 @@ use rsa::rand_core::OsRng;
 /// 
 /// let header = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"; // Example base64 encoded header
 /// let body = "eyJleHAiOjE0ODUxNDA5ODQsImlhdCI6MTQ4NTEzNzM4NCwiaXNzIjoiYWNtZS5jb20iLCJzdWIiOiIyOWFjMGMxOC0wYjRhLTQyY2YtODJmYy0wM2Q1NzAzMThhMWQiLCJhcHBsaWNhdGlvbklkIjoiNzkxMDM3MzQtOTdhYi00ZDFhLWFmMzctZTAwNmQwNWQyOTUyIiwicm9sZXMiOltdfQ"; // Example base64 encoded body
-/// let key = "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"; // Example PEM formatted private key
+/// let key = "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----"; // Example PEM formatted private key
 /// 
 /// let signed_jwt = hmac_rsa256(header, body, key); // Call the function to sign the JWT
 /// ``````
@@ -46,7 +48,7 @@ pub fn hmac_rsa256(header: &str, body: &str, key_from_pem: &str) -> String {
     
     // Encode the signature in base 64
     let signature = signature.to_vec();
-    let signature_base64 = base64::engine::general_purpose::STANDARD.encode(signature);
+    let signature_base64 = ENCODING_ENGINE.encode(signature);
 
     // Return the signed JWT
     format!("{}.{}.{}", header, body, signature_base64)
