@@ -1,4 +1,4 @@
-pub mod rsa256; 
+pub mod rsa;
 
 use serde::{Deserialize, Serialize};
 
@@ -38,8 +38,8 @@ pub fn verify_token<T: Clone + Serialize + for<'a> Deserialize<'a>>(signed_token
 
     // Verify the token using the algorithm
     match alg {
-        Algorithm::RS256 => verified = rsa256::verify(&split_token, key_from_pem),
-        Algorithm::RS512 => todo!(),
+        Algorithm::RS256 => verified = rsa::verify(&split_token, key_from_pem, &alg)?,
+        Algorithm::RS512 => verified = rsa::verify(&split_token, key_from_pem, &alg)?,
     }
 
     // Return an error if not verified
@@ -48,11 +48,12 @@ pub fn verify_token<T: Clone + Serialize + for<'a> Deserialize<'a>>(signed_token
     };
 
     // Return the claims
-    let claims: T = decoding::claims::decode(&split_token[1]).unwrap();
+    let claims: T = decoding::claims::decode(&split_token[1]).map_err(|_| VerifyingTokenError::DeserializingClaims)?;
     Ok(claims)
 
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 /// Type returned if there is an error when verifying a token
 /// 
 /// # Variants
@@ -67,6 +68,8 @@ pub enum VerifyingTokenError {
     DeserializingHeader,
     /// There was an error deserializing the claims into the given type
     DeserializingClaims,
+    /// The public key is invalid
+    VerifyingKey,
     /// There was an unkown error
     Other(String),
 }

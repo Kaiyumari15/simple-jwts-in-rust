@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::verifying;
+use crate::{model::header::Algorithm, verifying};
 
 #[test]
 fn test_verify_successful() {
@@ -23,6 +23,8 @@ fn test_verify_successful() {
     let parts: Vec<&str> = signed_token.split('.').collect();
     assert_eq!(parts.len(), 3, "Token should have 3 parts: header, body, and signature");
 
-    let verified = verifying::rsa256::verify(&parts, &public_key);
-    assert_eq!(verified, true, "Token should be verified successfully");
+    // Verify the token using the public key and algorithm
+    let verified = verifying::rsa::verify(&parts, &public_key, &Algorithm::RS256);
+    assert!(verified.is_ok(), "Token verification should not return an error");
+    assert_eq!(verified.unwrap(), true, "Token should be verified successfully");
 }
