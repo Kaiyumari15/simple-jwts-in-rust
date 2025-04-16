@@ -23,6 +23,8 @@ fn test_verify_successful() {
     let parts: Vec<&str> = signed_token.split('.').collect();
     assert_eq!(parts.len(), 3, "Token should have 3 parts: header, body, and signature");
 
+    // Verify the token using the public key and algorithm
     let verified = verifying::rsa::verify(&parts, &public_key, &Algorithm::RS256);
-    assert_eq!(verified, true, "Token should be verified successfully");
+    assert!(verified.is_ok(), "Token verification should not return an error");
+    assert_eq!(verified.unwrap(), true, "Token should be verified successfully");
 }

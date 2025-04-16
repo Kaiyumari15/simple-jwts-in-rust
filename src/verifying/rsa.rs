@@ -8,6 +8,8 @@ use rsa::{pss::VerifyingKey, sha2::Sha256};
 
 use crate::model::header::Algorithm;
 
+use super::VerifyingTokenError;
+
 /// Verify a token using RSA256 and an RSA public key
 /// 
 /// # Arguments
@@ -16,9 +18,9 @@ use crate::model::header::Algorithm;
 /// 
 /// # Returns
 /// * `bool` - Returns true if the token signature is valid, false otherwise
-pub fn verify(token: &[&str], public_key: &str, algorithm: &Algorithm) -> bool {
+pub fn verify(token: &[&str], public_key: &str, algorithm: &Algorithm) -> Result<bool, VerifyingTokenError> {
     if token.len() != 3 {
-        return false;
+        return Err(VerifyingTokenError::Other("Token must have 3 parts".to_string()));
     }
 
     // Seperate the token parts
@@ -30,7 +32,7 @@ pub fn verify(token: &[&str], public_key: &str, algorithm: &Algorithm) -> bool {
     let decoded_signature = decoded_signature.as_slice();
 
     // Get the public key
-    let rsa_pub = RsaPublicKey::from_public_key_pem(public_key).expect("Failed to parse PEM file");
+    let rsa_pub = RsaPublicKey::from_public_key_pem(public_key).map_err(|_| VerifyingTokenError::VerifyingKey)?;
     let data = format!("{}.{}", header, payload);
 
     // Match the algorithm to create the signature
@@ -40,12 +42,12 @@ pub fn verify(token: &[&str], public_key: &str, algorithm: &Algorithm) -> bool {
         Algorithm::RS256 => {
             let verifying_key = VerifyingKey::<Sha256>::new(rsa_pub);
             let signature = Signature::try_from(decoded_signature).expect("Failed to parse signature from bytes");
-            return verifying_key.verify(data.as_bytes(), &signature).is_ok()
+            return Ok(verifying_key.verify(data.as_bytes(), &signature).is_ok())
         }
         Algorithm::RS512 => {
             let verifying_key = VerifyingKey::<Sha512>::new(rsa_pub);
             let signature = Signature::try_from(decoded_signature).expect("Failed to parse signature from bytes");
-            return verifying_key.verify(data.as_bytes(), &signature).is_ok()
+            return Ok(verifying_key.verify(data.as_bytes(), &signature).is_ok())
         }
     }
 }
