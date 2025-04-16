@@ -1,9 +1,12 @@
 use base64::Engine;
 use rsa::pkcs8::DecodePublicKey;
 use rsa::pss::Signature;
+use rsa::sha2::Sha512;
 use rsa::signature::Verifier;
 use rsa::RsaPublicKey;
 use rsa::{pss::VerifyingKey, sha2::Sha256};
+
+use crate::model::header::Algorithm;
 
 /// Verify a token using RSA256 and an RSA public key
 /// 
@@ -13,7 +16,7 @@ use rsa::{pss::VerifyingKey, sha2::Sha256};
 /// 
 /// # Returns
 /// * `bool` - Returns true if the token signature is valid, false otherwise
-pub fn verify(token: &[&str], public_key: &str) -> bool {
+pub fn verify(token: &[&str], public_key: &str, algorithm: &Algorithm) -> bool {
     if token.len() != 3 {
         return false;
     }
@@ -26,11 +29,23 @@ pub fn verify(token: &[&str], public_key: &str) -> bool {
     let decoded_signature = crate::decoding::DECODING_ENGINE.decode(signature).unwrap();
     let decoded_signature = decoded_signature.as_slice();
 
-    // Check the signature
+    // Get the public key
     let rsa_pub = RsaPublicKey::from_public_key_pem(public_key).expect("Failed to parse PEM file");
-    let verifying_key = VerifyingKey::<Sha256>::new(rsa_pub);
     let data = format!("{}.{}", header, payload);
-    let signature = Signature::try_from(decoded_signature).expect("Failed to parse signature from bytes");
-    let verify = verifying_key.verify(data.as_bytes(), &signature).is_ok();
-    verify
+
+    // Match the algorithm to create the signature
+    // and verify the token
+    // must be done in this match statement as the keys are different types depending on the algorithm
+    match algorithm {
+        Algorithm::RS256 => {
+            let verifying_key = VerifyingKey::<Sha256>::new(rsa_pub);
+            let signature = Signature::try_from(decoded_signature).expect("Failed to parse signature from bytes");
+            return verifying_key.verify(data.as_bytes(), &signature).is_ok()
+        }
+        Algorithm::RS512 => {
+            let verifying_key = VerifyingKey::<Sha512>::new(rsa_pub);
+            let signature = Signature::try_from(decoded_signature).expect("Failed to parse signature from bytes");
+            return verifying_key.verify(data.as_bytes(), &signature).is_ok()
+        }
+    }
 }
