@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{encoding, signing, model::header::{Header, Algorithm}};
 
-pub mod rsa256;
+pub mod rsa;
 
 /// Signs the token with the given header and claims using the specified signing key.
 /// 
@@ -24,10 +24,7 @@ pub fn sign<'a, T: Serialize + Deserialize<'a> + Clone>(header: &Header, claims:
     let encoded_claims = encoding::claims::encode(claims).map_err(|_| SigningError::InvalidData(format!("Failed to encode claims")))?;
 
     // Sign the token using the correct algorithm 
-    let signed_token = match algorithm {
-        Algorithm::RS256 => signing::rsa256::hmac_rsa256(&encoded_header, &encoded_claims, signing_key)?,
-    };
-
+    let signed_token = signing::rsa::hmac_rsa(&encoded_header, &encoded_claims, signing_key, algorithm)?;
     Ok(signed_token)
 }
 
