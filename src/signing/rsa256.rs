@@ -8,6 +8,8 @@ use rsa::rand_core::OsRng;
 
 use crate::encoding::ENCODING_ENGINE;
 
+use super::SigningError;
+
 /// This function signs a JWT using RSA256 with a private key in PEM format.
 /// 
 /// # Arguments
@@ -29,13 +31,13 @@ use crate::encoding::ENCODING_ENGINE;
 /// 
 /// let signed_jwt = hmac_rsa256(header, body, key); // Call the function to sign the JWT
 /// ``````
-pub fn hmac_rsa256(header: &str, body: &str, key_from_pem: &str) -> String {
+pub fn hmac_rsa256(header: &str, body: &str, key_from_pem: &str) -> Result<String, SigningError> {
 
     // Create a random number
     let mut rng = OsRng; 
 
     // Decode the private key for use 
-    let private_key = RsaPrivateKey::from_pkcs1_pem(key_from_pem).expect("Failed to parse PEM file"); // currently assumes pkcs1, will need to change to allow for pkcs8 as well
+    let private_key = RsaPrivateKey::from_pkcs1_pem(key_from_pem).map_err(|err| SigningError::InvalidKey(err.to_string()))?; // currently assumes pkcs1, will need to change to allow for pkcs8 as well
 
     // Create a signing key from the private key
     let signing_key = BlindedSigningKey::<Sha256>::new(private_key);
@@ -44,12 +46,12 @@ pub fn hmac_rsa256(header: &str, body: &str, key_from_pem: &str) -> String {
     let data = format!("{}.{}", header, body); 
 
     // Sign the header and body using the signing key
-    let signature = signing_key.try_sign_with_rng(&mut rng, data.as_bytes()).expect("Failed to sign message");
+    let signature = signing_key.try_sign_with_rng(&mut rng, data.as_bytes()).map_err(|err| SigningError::InvalidData(err.to_string()))?; // This will return a signature in the form of a byte array
     
     // Encode the signature in base 64
     let signature = signature.to_vec();
     let signature_base64 = ENCODING_ENGINE.encode(signature);
 
     // Return the signed JWT
-    format!("{}.{}.{}", header, body, signature_base64)
+    Ok(format!("{}.{}.{}", header, body, signature_base64))
 }
