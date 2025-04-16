@@ -25,7 +25,7 @@ use crate::decoding;
 /// let token = "pretend_this.is_a.valid_signed_token";
 /// let public_key = "pretend_this_is_a_valid_public_key_from_a_pem_file";
 /// let claims: Claims = verify_token(token, public_key).unwrap();
-/// ``````
+/// ```
 pub fn verify_token<T: Clone + Serialize + for<'a> Deserialize<'a>>(signed_token: &str, key_from_pem: &str) -> Result<T, VerifyingTokenError> {
     #[allow(unused_assignments)]
     let mut verified: bool = false;
@@ -39,6 +39,7 @@ pub fn verify_token<T: Clone + Serialize + for<'a> Deserialize<'a>>(signed_token
     // Verify the token using the algorithm
     match alg {
         Algorithm::RS256 => verified = rsa256::verify(&split_token, key_from_pem),
+        Algorithm::RS512 => todo!(),
     }
 
     // Return an error if not verified

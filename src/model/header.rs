@@ -46,12 +46,14 @@ impl Header {
 /// ```
 pub enum Algorithm {
     RS256,
+    RS512,
 }
 
 impl Display for Algorithm {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Algorithm::RS256 => write!(f, "RS256"),
+            Algorithm::RS512 => write!(f, "RS512"),
         }
     }
 }
@@ -62,6 +64,7 @@ impl FromStr for Algorithm {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "RS256" => Ok(Algorithm::RS256),
+            "RS512" => Ok(Algorithm::RS512),
             _ => Err(HeaderDecodeError::UnsupportedAlgorithm(s.to_string())),
         }
     }

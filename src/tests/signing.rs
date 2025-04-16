@@ -27,7 +27,7 @@ fn test_signing_successful() {
     let pem = std::fs::read_to_string(pem_path).expect("Failed to read PEM file");
 
     // Sign the token
-    let signed_token = signing::rsa256::hmac_rsa256(&encoded_header, &encoded_claims, &pem);
+    let signed_token = signing::rsa::hmac_rsa(&encoded_header, &encoded_claims, &pem, Algorithm::RS256).unwrap();
 
     dbg!(signed_token);
 }

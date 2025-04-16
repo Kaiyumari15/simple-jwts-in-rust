@@ -2,11 +2,14 @@ use base64::Engine;
 use rsa::signature::{RandomizedSigner, SignatureEncoding};
 use rsa::pss::BlindedSigningKey;
 use rsa::pkcs1::DecodeRsaPrivateKey;
-use rsa::sha2::Sha256;
+use rsa::sha2::{Sha256, Sha512};
 use rsa::RsaPrivateKey;
 use rsa::rand_core::OsRng;
 
 use crate::encoding::ENCODING_ENGINE;
+use crate::model::header::Algorithm;
+
+use super::SigningError;
 
 /// This function signs a JWT using RSA256 with a private key in PEM format.
 /// 
@@ -29,27 +32,28 @@ use crate::encoding::ENCODING_ENGINE;
 /// 
 /// let signed_jwt = hmac_rsa256(header, body, key); // Call the function to sign the JWT
 /// ``````
-pub fn hmac_rsa256(header: &str, body: &str, key_from_pem: &str) -> String {
+pub fn hmac_rsa(header: &str, body: &str, key_from_pem: &str, algorithm: Algorithm) -> Result<String, SigningError> {
 
     // Create a random number
     let mut rng = OsRng; 
 
-    // Decode the private key for use 
-    let private_key = RsaPrivateKey::from_pkcs1_pem(key_from_pem).expect("Failed to parse PEM file"); // currently assumes pkcs1, will need to change to allow for pkcs8 as well
-
-    // Create a signing key from the private key
-    let signing_key = BlindedSigningKey::<Sha256>::new(private_key);
-
     // Concatenate the header and body with a dot
     let data = format!("{}.{}", header, body); 
 
-    // Sign the header and body using the signing key
-    let signature = signing_key.try_sign_with_rng(&mut rng, data.as_bytes()).expect("Failed to sign message");
+    // Decode the private key for use 
+    let private_key = RsaPrivateKey::from_pkcs1_pem(key_from_pem).map_err(|err| SigningError::InvalidKey(err.to_string()))?; // currently assumes pkcs1, will need to change to allow for pkcs8 as well
+
+    // Sign the header and body using the signing key with the correct algorithm
+    // This must be done in a match statement as the algorithm is not known at compile time and results in different types of keys
+    let signature = match algorithm {
+        Algorithm::RS256 => BlindedSigningKey::<Sha256>::new(private_key).try_sign_with_rng(&mut rng, data.as_bytes()).map_err(|err| SigningError::InvalidData(err.to_string()))?,
+        Algorithm::RS512 => BlindedSigningKey::<Sha512>::new(private_key).try_sign_with_rng(&mut rng, data.as_bytes()).map_err(|err| SigningError::InvalidData(err.to_string()))?,
+    };
     
     // Encode the signature in base 64
     let signature = signature.to_vec();
     let signature_base64 = ENCODING_ENGINE.encode(signature);
 
     // Return the signed JWT
-    format!("{}.{}.{}", header, body, signature_base64)
+    Ok(format!("{}.{}.{}", header, body, signature_base64))
 }
