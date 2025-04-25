@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use serde::{Deserialize, Serialize};
 
 use crate::{encoding, signing, model::header::{Algorithm, Header}};

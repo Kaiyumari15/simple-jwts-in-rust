@@ -60,6 +60,7 @@ pub fn verify<T: Clone + Serialize + for<'a> Deserialize<'a>>(signed_token: &str
 /// * `InvalidSignature` - The signature is invalid
 /// * `DeserializingHeader` - There was an error deserializing the header
 /// * `DeserializingClaims` - There was an error deserializing the claims into the given type
+/// * `VerifyingKey` - The public key is invalid
 /// * `Other` - There was an unknown error
 pub enum VerifyingTokenError {
     /// The signature is invalid
