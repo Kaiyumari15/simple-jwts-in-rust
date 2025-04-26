@@ -13,11 +13,6 @@ use serde::Deserialize;
 /// A `Result` containing either the decoded claims or an error
 pub fn decode<T: for<'a> Deserialize<'a> + Clone + ToOwned>(claims: &str) -> Result<T, ClaimsDecodeError> {
     
-    // Add padding if needed
-    let padding_needed = claims.len() % 4;
-    let padding = "=".repeat(padding_needed);
-    let claims = format!("{}{}", claims, padding);
-    
     // Decode the base64 string
     let claims_json: Vec<u8> = base64::engine::general_purpose::STANDARD.decode(claims).map_err(|e| ClaimsDecodeError::Base64Error(e))?;
 
